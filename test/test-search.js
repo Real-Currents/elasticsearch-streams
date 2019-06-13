@@ -5,7 +5,6 @@ var PipableDocs = require('..').PipableDocs;
 var Writable = require('stream').Writable;
 var Readable = require('stream').Readable;
 var client = new require('elasticsearch').Client({log: 'warning'});
-var random = require('random-document-stream');
 
 describe('When searching', function() {
   var rs;
@@ -104,18 +103,35 @@ function populateIndex(nb, done) {
   var ids = [];
   client.indices.delete({index:'myindex'}, function() {
     var cmds = [];
-    var generator = random(0);
+    var contentGenerator = (function* () {
+      while (true) {
+        yield ({ "content": Math.random() });
+      }
+    }) ();
+    contentGenerator.prototype = {};
+
+    require('util').inherits(contentGenerator, require('readable-stream').Readable);
+
+    contentGenerator.prototype._read = function () {
+      while (this.push(this.next())) {
+          this.number--;
+      }
+    };
+
     for (var i = 0; i < nb; i++) {
-      var rec = generator.makeJunk();
-      cmds.push({ index:  { _index: 'myindex', _type: 'mytype', _id: rec._id } });
+      var rec = contentGenerator.next();
+      cmds.push({ index:  { _index: 'myindex', _type: 'mytype' } });
       cmds.push(rec);
-      ids.push(rec._id);
       rec._id = undefined;
     }
     client.bulk({
       body: cmds
-    }, function(e) {
-      if (e) { return done(e); }
+    }, function(e, res) {
+      if (e) { console.error(e); return done(e); }
+      console.log(JSON.stringify(res));
+      if (res.items) {
+        res.items.forEach(r => ids.push(r.index._id));
+      }
       client.indices.refresh({index: 'myindex'}, done);
     });
   });
@@ -131,7 +147,7 @@ function checkRecords(rs, ts, nb, done) {
     expect(chunk._index).to.equal('myindex');
     expect(chunk._type).to.equal('mytype');
     expect(chunk._id).to.exist;
-    expect(chunk._source.name).to.exist;
+    expect(chunk._source).to.exist;
     next();
   };
   var errClosure = function(e) {

@@ -1,6 +1,6 @@
 {
-  "name": "elasticsearch-streams",
-  "description": "Stream in and out of Elasticsearch",
+  "name": "es-stream",
+  "description": "Fork of elasticsearch-streams to stream ndjson in and out of Elasticsearch",
   "version": "0.0.10",
   "repository": {
     "type": "git",
@@ -16,10 +16,18 @@
     "elasticsearch",
     "stream"
   ],
-  "dependencies": {},
+  "bin": {
+    "smartsum": "main.js"
+  },
+  "dependencies": {
+    "ndjson": "^1.5.0",
+    "split": "^1.0.1",
+    "stream-limit-throughput": "^1.0.2"
+  },
   "devDependencies": {
+    "async-stream-generator": "^1.0.3",
     "chai": "*",
     "elasticsearch": "*",
-    "random-document-stream": "*"
+    "readable-stream": "^3.4.0"
   }
 }
