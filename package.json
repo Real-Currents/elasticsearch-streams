@@ -7,6 +7,7 @@
     "url": "https://github.com/hmalphettes/elasticsearch-streams.git"
   },
   "main": "index.js",
+  "private": true,
   "scripts": {
     "test": "jshint lib/*.js test/*.js && mocha"
   },
@@ -17,7 +18,7 @@
     "stream"
   ],
   "bin": {
-    "smartsum": "main.js"
+    "es-stream": "main.js"
   },
   "dependencies": {
     "ndjson": "^1.5.0",
